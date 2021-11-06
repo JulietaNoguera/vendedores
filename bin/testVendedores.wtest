@@ -1,0 +1,124 @@
+import vendedores.*
+import centroDistri.*
+
+describe "testX" {
+	
+	//provincias
+	const mendoza= new Provincia(poblacion=10000)
+	const buenosAires= new Provincia(poblacion=52000000)
+	
+	//ciudades
+	const godoyCruz= new Ciudad(provincia= mendoza)
+	const lasHeras= new Ciudad(provincia= mendoza)
+	const mendozaCap= new Ciudad(provincia= mendoza)
+	const guaymayen= new Ciudad(provincia= mendoza)
+	
+	const hurlingham= new Ciudad(provincia= buenosAires)
+	const moron= new Ciudad(provincia= buenosAires)
+	const caba= new Ciudad(provincia= buenosAires)
+	const quilmes= new Ciudad(provincia= buenosAires)
+	
+	//vendedores	
+	const vendedorFijo= new Fijo(ciudad=godoyCruz)
+	const vendedorViajante= new Viajante()
+	const vendedorcomercio= new ComercioCorresponsal()
+	
+	//sucursales
+	const suc1= new Sucursal(ciudad=mendozaCap)
+	const suc2= new Sucursal(ciudad=caba)
+	
+	//certificaciones
+	const certi1= new Certificacion(puntos=50,certifSobreProducto=false)
+	const certi2= new Certificacion(puntos=100,certifSobreProducto=true)
+	const certi3= new Certificacion(puntos=10,certifSobreProducto=false)
+	const certi4= new Certificacion(puntos=300,certifSobreProducto=true)
+	const certi5= new Certificacion(puntos=150,certifSobreProducto=true)
+	
+	//centro de distribucion
+	const centro1= new CentroDistribucion(ciudad= quilmes)
+	
+	method initialize(){
+		//agregar ciudades a Mendoza
+		mendoza.agregarCiudad(lasHeras)
+		mendoza.agregarCiudad(godoyCruz)
+		mendoza.agregarCiudad(mendozaCap)
+		
+		//agregar ciudades a Buenos Aires
+		buenosAires.agregarCiudad(hurlingham)
+		buenosAires.agregarCiudad(moron)
+		buenosAires.agregarCiudad(caba)
+		
+		//vendedores
+		vendedorViajante.agregarProviHabilitadaTrabajar(mendoza)
+		vendedorViajante.agregarProviHabilitadaTrabajar(buenosAires)
+		vendedorcomercio.agregarSucursal(suc1)
+		vendedorcomercio.agregarSucursal(suc2)
+		
+		//agregar certificaciones 
+		vendedorViajante.agregarCertificacion(certi1)
+		vendedorViajante.agregarCertificacion(certi5)
+		
+		
+		vendedorFijo.agregarCertificacion(certi2)
+		vendedorFijo.agregarCertificacion(certi3)
+		
+		
+		vendedorcomercio.agregarCertificacion(certi4)
+		vendedorcomercio.agregarCertificacion(certi1)
+		vendedorcomercio.agregarCertificacion(certi3)
+		
+		//agregar centro de distribucion
+		centro1.agregarVendedor(vendedorViajante)
+		centro1.agregarVendedor(vendedorcomercio)
+	}
+	test " total puntos"{
+		assert.equals(200,vendedorViajante.totalPuntos())
+		assert.equals(110,vendedorFijo.totalPuntos())
+		assert.equals(360,vendedorcomercio.totalPuntos())
+	}
+	
+	test "es versatil"{
+		assert.that(vendedorcomercio.esVersatil())
+		assert.notThat(vendedorFijo.esVersatil())
+	}
+	
+	test "es firme"{
+		assert.that(vendedorViajante.esFirme())
+	}
+	
+	test "es influyente"{
+		assert.notThat(vendedorFijo.esInfluyente())
+		assert.that(vendedorViajante.esInfluyente())
+		assert.notThat(vendedorcomercio.esInfluyente())
+	}
+	
+	test "puede trabajar"{
+		assert.that(vendedorFijo.puedeTrabajar(godoyCruz))
+		assert.notThat(vendedorFijo.puedeTrabajar(guaymayen))
+		assert.that(vendedorViajante.puedeTrabajar(moron))
+		assert.that(vendedorcomercio.puedeTrabajar(caba))
+		assert.notThat(vendedorcomercio.puedeTrabajar(lasHeras))
+	}
+	
+	test "vendedor estrella"{
+		assert.equals(vendedorcomercio,centro1.vendedorEstrella())
+	}
+	
+	test "puede cubrir"{
+		assert.that(centro1.puedeCubrir(moron))
+		assert.notThat(centro1.puedeCubrir(quilmes))
+	}
+	test "vendedores genericos"{
+		assert.equals(#{vendedorViajante,vendedorcomercio},centro1.vendedoresGenericos())
+	}
+	test" es robusto"{
+		assert.notThat(centro1.esRobusto())
+	}
+	
+	test "repartir certificado"{
+		centro1.repartaUnaNotificacion(certi2)
+		assert.equals(3, vendedorViajante.totalCertificaciones())
+		assert.equals(4, vendedorcomercio.totalCertificaciones())
+	}
+}
+
